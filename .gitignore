@@ -37,5 +37,5 @@ nosetests.xml
 
 .idea/
 *.iml
-config.py
+settings.py
 config.db

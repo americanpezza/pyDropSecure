@@ -15,10 +15,10 @@ of the encryption. Use it at your own risk.
 The current setup method is very clunky as this project is very much in development mode. I will streamline the process 
 in the near future.
 
-1. Rename `src/config_template.py` to `src/config.py` 
+1. Rename `src/settings_template.py` to `src/settings.py`
 2. Register a new application with Dropbox and obtain the application key and secret.
-3. Modify the `APP_KEY` and `APP_SECRET` parameters in `src/config.py` accordingly. 
-4. Run `src/config.py` and follow the instructions.
+3. Modify the `APP_KEY` and `APP_SECRET` parameters in `src/settings.py` accordingly.
+4. Run `src/configure.py` and follow the instructions.
 
 If you want to setup sync on another machine, manually create `~/DropSecure` and `~/.dropsecure` yourself. Next, copy 
 the `~/.dropsecure/config.db` file from the machine you originally performed the setup on to the `~/.dropsecure` directory

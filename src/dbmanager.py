@@ -1,10 +1,11 @@
 import hashlib
+import os
 import shutil
 import sqlite3
 import dropbox
 import time
 import aes
-from config import *
+from settings import CONFIG_DB, CONFIG_CURSOR, APP_PATH
 
 __author__ = 'ayrx'
 

@@ -2,8 +2,8 @@ import os
 import dropbox
 import sqlite3
 import aes
+from settings import APP_PATH, APP_KEY, APP_SECRET, CONFIG_PATH, CONFIG_DB
 
-from config import *
 
 __author__ = 'Terry Chia'
 

@@ -1,6 +1,6 @@
 import atexit
-from config import CONFIG_CURSOR
 import dbmanager
+from settings import CONFIG_CURSOR
 
 __author__ = 'Terry Chia'
 
