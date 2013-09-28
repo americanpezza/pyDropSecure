@@ -1,3 +1,4 @@
+import hashlib
 import shutil
 import sqlite3
 import dropbox
@@ -31,12 +32,12 @@ class DropboxManager:
         else:
             self.cursor = None
 
-        self.local_files = []
+        self.local_files = {}
         for root, dirs, files in os.walk(APP_PATH):
             for d in dirs:
-                self.local_files.append(os.path.join(root, d))
+                self.local_files[os.path.join(root, d)] = None
             for f in files:
-                self.local_files.append(os.path.join(root, f))
+                self.local_files[os.path.join(root, f)] = self._md5sum(os.path.join(root, f))
 
         self.recently_uploaded = []
 
@@ -53,7 +54,7 @@ class DropboxManager:
         with open(self._get_absolute_from_relpath(path), 'wb') as foo:
             foo.write(self._decrypt(f.read()))
         f.close()
-        self.local_files.append(self._get_absolute_from_relpath(path))
+        self.local_files[self._get_absolute_from_relpath(path)] = self._md5sum(self._get_absolute_from_relpath(path))
 
     def upload(self, path):
         print "Uploading ", path
@@ -118,7 +119,7 @@ class DropboxManager:
                     os.remove(path)
                     print "Creating directory ", d
                     os.makedirs(path)
-                    self.local_files.append(path)
+                    self.local_files[path] = None
                 else:
                     # Apply the new metadata to the folder,
                     # but do not modify the folders children.
@@ -126,7 +127,7 @@ class DropboxManager:
             else:
                 print "Creating directory ", d
                 os.makedirs(path)
-                self.local_files.append(path)
+                self.local_files[path] = None
 
         for f in files:
             self._delete_if_exist(f)
@@ -141,15 +142,20 @@ class DropboxManager:
                 filelist.append(os.path.join(root, f))
 
         for f in filelist:
-            if f not in self.local_files:
+            if f not in self.local_files.keys():
                 print 'Uploading ', f
                 self.upload(f)
-                self.local_files.append(f)
+                self.local_files[f] = self._md5sum(f)
 
-        for f in self.local_files:
+            elif self._md5sum(f) != self.local_files[f]:
+                print 'Uploading ', f
+                self.upload(f)
+                self.local_files[f] = self._md5sum(f)
+
+        for f in self.local_files.keys():
             if f not in filelist:
                 self.remove(f)
-                self.local_files.remove(f)
+                del self.local_files[f]
 
     def _encrypt(self, data):
         return self.crypt.encrypt(data)
@@ -173,7 +179,7 @@ class DropboxManager:
                 else:
                     os.remove(path)
 
-                self.local_files.remove(path)
+                del self.local_files[path]
 
         except OSError:
             pass
@@ -188,3 +194,6 @@ class DropboxManager:
                     return os.path.join(root, f)
 
         return path
+
+    def _md5sum(self, fname):
+        return hashlib.md5(open(fname, 'rb').read()).digest()
