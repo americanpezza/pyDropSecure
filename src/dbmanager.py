@@ -43,7 +43,7 @@ class DropboxManager:
         self.recently_uploaded = []
 
     def monitor(self):
-        while True:
+        while 1:
             print 'Cursor is ', self.cursor
             self.get_delta()
             self.upload_new_files()
@@ -80,11 +80,12 @@ class DropboxManager:
         print "Getting delta"
         tree = {}
 
-        while True:
+        while 1:
             result = self.client.delta(self.cursor)
 
             if result['reset']:
                 print 'Delta has been reset'
+                # TODO: Nuke directory
 
             for path, metadata in result['entries']:
                 if path not in self.recently_uploaded:
@@ -124,6 +125,7 @@ class DropboxManager:
                 else:
                     # Apply the new metadata to the folder,
                     # but do not modify the folders children.
+                    # TODO: Find out what this means?
                     pass
             else:
                 print "Creating directory ", d
