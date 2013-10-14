@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import argparse
 import os
 import configure
@@ -9,26 +11,25 @@ __author__ = 'Terry Chia'
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    action = parser.add_mutually_exclusive_group()
+    action = parser.add_mutually_exclusive_group(required=True)
     action.add_argument('--start', help='Start the script',
                         action='store_true')
     action.add_argument('--stop', help='Stop the script',
                         action='store_true')
     action.add_argument('--restart', help='Restart the script',
                         action='store_true')
-    action.add_argument('--export', help='Export application keys',
-                        action='store_true')
+    action.add_argument('--export', help='Export application keys')
     action.add_argument('--import', help='Import application keys',
-                        action='store_true', dest='imp')
+                        dest='imp')
     action.add_argument('--configure', help='Configure the application',
                         action='store_true')
     args = parser.parse_args()
 
-    if args.export:
-        print 'Exported'
+    if args.export is not None:
+        configure.export_configuration(args.export)
 
-    elif args.imp:
-        print 'Imported'
+    elif args.imp is not None:
+        configure.import_configuration(args.imp)
 
     elif args.configure:
         if not os.path.exists(APP_PATH):
@@ -63,4 +64,3 @@ if __name__ == '__main__':
     elif args.restart:
         daemon = watcher.Watcher('/tmp/dropsecure.pid')
         daemon.restart()
-

@@ -1,6 +1,8 @@
+from getpass import getpass
 import os
 import dropbox
 import sqlite3
+from pbkdf2 import PBKDF2
 import aes
 from settings import APP_PATH, APP_KEY, APP_SECRET, CONFIG_PATH, CONFIG_DB
 
@@ -33,3 +35,30 @@ def new_configuration():
     c.execute('INSERT INTO key VALUES(?)', (aes.Crypticle.generate_key_string(), ))
     conn.commit()
     conn.close()
+
+
+def export_configuration(output_path):
+    password = getpass('Please enter password to encrypt exported file with: ')
+    salt = os.urandom(8)
+    key = PBKDF2(password, salt).read(48).encode("base64").replace("\n", "")
+    crypt = aes.Crypticle(key)
+
+    with open(CONFIG_DB, 'rb') as f:
+        foo = crypt.encrypt(f.read())
+
+    with open(output_path, 'wb') as f:
+        f.write(salt+foo)
+
+
+def import_configuration(input_path):
+    password = getpass('Please enter password to decrypt file to import: ')
+
+    with open(input_path, 'rb') as f:
+        salt = f.read(8)
+        encrypted_text = f.read()
+
+    key = PBKDF2(password, salt).read(48).encode("base64").replace("\n", "")
+    crypt = aes.Crypticle(key)
+
+    with open(CONFIG_DB, 'wb') as f:
+        f.write(crypt.decrypt(encrypted_text))
