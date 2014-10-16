@@ -4,17 +4,11 @@ from settings import APP_PATH, CONFIG_PATH, CONFIG_DB, config
 from pbkdf2 import PBKDF2
 
 
-crypticle = None;
-
 def getCrypticle(pwd,  salt):
-    global crypticle
+    key = PBKDF2(pwd, salt).read(48).encode("base64").replace("\n", "")
+    crypt = aes.Crypticle(key)
     
-    if crypticle is None:
-        key = PBKDF2(pwd, salt).read(48).encode("base64").replace("\n", "")
-        crypt = aes.Crypticle(key)
-        crypticle = crypt
-    
-    return crypticle
+    return crypt
 
 def saveConfiguration(output_path,  pwd = None):
     password = pwd
@@ -32,6 +26,7 @@ def loadConfiguration(input_path,  pwd = None):
     password = pwd
     if password is None:
         password = getpass('Enter your master password: ')
+	print "Password is '%s', %d" % (password, len(password))
 
     with open(input_path, 'rb') as f:
         salt = f.read(8)
@@ -39,5 +34,7 @@ def loadConfiguration(input_path,  pwd = None):
 
     crypt = getCrypticle(password,  salt)
     config = crypt.loads(encrypted_text)
+
+    crypt = getCrypticle(password, config['appSecret'])
     
-    return config,  crypt
+    return config, crypt
