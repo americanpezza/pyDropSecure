@@ -26,7 +26,6 @@ def loadConfiguration(input_path,  pwd = None):
     password = pwd
     if password is None:
         password = getpass('Enter your master password: ')
-	print "Password is '%s', %d" % (password, len(password))
 
     with open(input_path, 'rb') as f:
         salt = f.read(8)
