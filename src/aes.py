@@ -1,7 +1,7 @@
 import cPickle as pickle
 import hashlib
 import hmac
-import os
+import os, sys
 from Crypto.Cipher import AES
 
 
@@ -68,14 +68,8 @@ class Crypticle(object):
         
         sig = data[-self.SIG_SIZE:]
         data = data[:-self.SIG_SIZE]
-
-        #
-        # if hmac.new(hmac_key, data, hashlib.sha256).digest() != sig:
-        #
-        # use compare_digest() instead of a == b to prevent timing analysis
-        # ref https://docs.python.org/2/library/hmac.html
         dataSig = hmac.new(hmac_key, data, hashlib.sha256)
-        if  not dataSig.compare_digest(dataSig.digest(),  sig):
+        if not self.compareHMAC(dataSig, sig): 
             raise AuthenticationError("message authentication failed")
             
         iv_bytes = data[:self.AES_BLOCK_SIZE]
@@ -84,6 +78,21 @@ class Crypticle(object):
         data = cypher.decrypt(data)
         
         return data[:-ord(data[-1])]
+
+    def compareHMAC(self, hmac, digest):
+        """verify HMACs equality, using the most secure way available """
+
+        result = False
+	
+        # use compare_digest() instead of a == b to prevent timing analysis
+	# if python version >= 2.7.7
+        # ref https://docs.python.org/2/library/hmac.html
+	if sys.version_info[1] >= 7 and sys.version_info[2] >= 7:
+            result = hmac.compare_digest(hmac.digest(), digest)
+        else:
+            result = hmac.digest() == digest
+	
+	return result
 
     def dumps(self, obj, pickler=pickle):
         """pickle and encrypt a python object"""
