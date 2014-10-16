@@ -1,18 +1,20 @@
 import atexit
 from daemon import Daemon
-import dbmanager
 from settings import CONFIG_CURSOR
 
 __author__ = 'Terry Chia'
 
 
 class Watcher(Daemon):
+    def __init__(self,  db,  *args,  **kwargs):
+        Daemon.__init__(self,  *args,  **kwargs)
+        self.db = db
+        
     def run(self):
             @atexit.register
             def save_cursor():
-                if db.cursor is not None:
+                if self.db.cursor is not None:
                     with open(CONFIG_CURSOR, 'w') as f:
-                        f.write(db.cursor)
+                        f.write(self.db.cursor)
 
-            db = dbmanager.DropboxManager()
-            db.monitor()
+            self.db.monitor()

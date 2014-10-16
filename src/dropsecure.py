@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 import argparse
-import os
+import os,  sys
 import configure
-from settings import APP_PATH, CONFIG_DB
+from settings import APP_PATH, CONFIG_DB,  config
 import watcher
+import dbmanager
 
 __author__ = 'Terry Chia'
 
@@ -35,32 +36,30 @@ if __name__ == '__main__':
         if not os.path.exists(APP_PATH):
             os.makedirs(APP_PATH)
 
+        choice = "Y"
         if os.path.exists(CONFIG_DB):
             while 1:
                 choice = raw_input('Configuration file exists. '
                                    'Do you want to overwrite? (Y/n)')
 
-                if choice == 'Y':
-                    configure.new_configuration()
+                if choice == 'Y' or choice == 'n':
                     break
-
-                elif choice == 'n':
-                    break
-
-                else:
-                    pass
-
-        else:
+ 
+        if choice == 'Y':
             configure.new_configuration()
 
-    elif args.start:
-        daemon = watcher.Watcher('/tmp/dropsecure.pid')
-        daemon.start()
+    else:
+        db = dbmanager.DropboxManager()
 
-    elif args.stop:
-        daemon = watcher.Watcher('/tmp/dropsecure.pid')
-        daemon.stop()
+        if args.start:
+            daemon = watcher.Watcher(db, '/tmp/dropsecure.pid')
+            daemon.start()
 
-    elif args.restart:
-        daemon = watcher.Watcher('/tmp/dropsecure.pid')
-        daemon.restart()
+        elif args.stop:
+            daemon = watcher.Watcher(db, '/tmp/dropsecure.pid')
+            daemon.stop()
+
+        elif args.restart:
+            daemon = watcher.Watcher(db, '/tmp/dropsecure.pid')
+            daemon.restart()
+        

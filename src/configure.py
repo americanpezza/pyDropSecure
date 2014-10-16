@@ -1,10 +1,9 @@
 from getpass import getpass
 import os
 import dropbox
-import sqlite3
 from pbkdf2 import PBKDF2
-import aes
-from settings import APP_PATH, APP_KEY, APP_SECRET, CONFIG_PATH, CONFIG_DB
+import crypto
+from settings import APP_PATH, CONFIG_PATH, CONFIG_DB, config
 
 
 __author__ = 'Terry Chia'
@@ -14,28 +13,38 @@ def new_configuration():
     if not os.path.exists(APP_PATH):
         os.makedirs(APP_PATH)
 
-    flow = dropbox.client.DropboxOAuth2FlowNoRedirect(APP_KEY, APP_SECRET)
-
+    appKey = raw_input('1. Enter your application key: ').strip()
+    appSecret = raw_input('2. Enter your application secret: ').strip()
+    
+    flow = dropbox.client.DropboxOAuth2FlowNoRedirect(appKey,  appSecret)
     authorize_url = flow.start()
-    print '1. Go to: ' + authorize_url
-    print '2. Click "Allow" (you might have to log in first)'
-    print '3. Copy the authorization code.'
-    code = raw_input("Enter the authorization code here: ").strip()
 
-    access_token, user_id = flow.finish(code)
-
+    print '3. Go to: ' + authorize_url
+    print '4. Click "Allow" (you might have to log in first)'
+    print '5. Copy the authorization code.'
+    code = raw_input("6. Enter the authorization code here: ").strip()
+    
+    masterPwd = 0
+    masterPwdConfirm = None
+    
+    while (masterPwd != masterPwdConfirm):
+        masterPwd = getpass("7. Enter your master password: ")
+        masterPwdConfirm = getpass("8. Confirm your master password: ")
+        if masterPwd != masterPwdConfirm:
+            print "Passwords didn't match. Try again."
+            
+    config['appKey'] = appKey
+    config['appSecret'] = appSecret
+    
+    token, user_id = flow.finish(code)
+    
+    config['appToken'] = token
+    config['userId'] = user_id
+    
     if not os.path.exists(CONFIG_PATH):
         os.makedirs(CONFIG_PATH)
 
-    conn = sqlite3.connect(CONFIG_DB)
-    c = conn.cursor()
-    c.execute('CREATE TABLE token (token text)')
-    c.execute('CREATE TABLE key (key text)')
-    c.execute('INSERT INTO token VALUES (?)', (access_token, ))
-    c.execute('INSERT INTO key VALUES(?)', (aes.Crypticle.generate_key_string(), ))
-    conn.commit()
-    conn.close()
-
+    crypto.saveConfiguration(CONFIG_DB,  masterPwd)
 
 def export_configuration(output_path):
     password = getpass('Please enter password to encrypt exported file with: ')

@@ -1,10 +1,10 @@
 import hashlib
 import os
 import shutil
-import sqlite3
 import dropbox
 import time
-import aes
+import crypto
+
 from settings import CONFIG_DB, CONFIG_CURSOR, APP_PATH
 
 __author__ = 'ayrx'
@@ -13,19 +13,10 @@ __author__ = 'ayrx'
 class DropboxManager:
 
     def __init__(self):
-        conn = sqlite3.connect(CONFIG_DB)
-        c = conn.cursor()
-
-        c.execute('SELECT * FROM token')
-        token = c.fetchone()[0]
-
-        c.execute('SELECT * FROM key')
-        key = c.fetchone()[0]
-
-        conn.close()
-
-        self.client = dropbox.client.DropboxClient(token)
-        self.crypt = aes.Crypticle(key)
+        config,  crypt = crypto.loadConfiguration(CONFIG_DB)
+        
+        self.client = dropbox.client.DropboxClient(config['appToken'])
+        self.crypt = crypt
 
         if os.path.exists(CONFIG_CURSOR):
             with open(CONFIG_CURSOR, 'r') as f:
